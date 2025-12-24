@@ -1,0 +1,44 @@
+from flask import Flask
+app = Flask(__name__)
+
+@app.route('/') # ルートURLにアクセスがあった場合の処理
+def hello_world():
+    return 'Hello, World!'
+
+if __name__ == '__main__':
+    app.run(debug=True) # アプリケーションを起動
+
+import sqlite3
+DB_name = "products.db"
+def get_connection():
+    conn = sqlite3.connect(DB_name)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def create_table():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            name TEXT NOT NULL,
+            stock INTEGER NOT NULL
+        )
+""")
+    
+if __name__ == "__main__":
+    create_table()
+
+from flask import Flask
+from db import get_connection
+
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    conn = get_connection()
+    products = conn.execute("SELECT * FROM products").fetchall()
+    conn.close()
+
+    return f"商品数: {len(products)}"
